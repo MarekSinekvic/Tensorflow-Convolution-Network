@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script>
+        function connectAB(slider,label) {
+            $(label).text($(slider)[0].value)
+            $(slider).on("input", (e)=>{
+                // $(label).text(Math.pow(2,$(slider)[0].value)-1);
+                $(label).text($(slider)[0].value);
+            })
+            $(label).on("click", (e)=>{
+                let val = prompt("set value")
+                $(slider)[0].value = Number(val);
+                $(label).text($(slider)[0].value);
+            });
+        }
+    </script>
+    <div>
+        <h2>Train encode model</h2>
+        <div style="margin-left: 8px">
+            <input id="encode-epochs-count" type="range" min="1" max="500" step="1" value="10" onload="">Epochs count (<span id="encode-epochs-count-label"></span>)<br/>
+            <input id="encode-learn-rate" type="range" min="0" max="0.01" step="0.00001"> Learning rate (<span id="encode-learn-rate-label"></span>)<br/>
+            <input id="encode-l1" type="range" value="0" min="0" max="0.1" step="0.001"> L1 (<span id="encode-l1-label"></span>)<br/>
+            <input id="encode-l2" type="range" value="0" min="0" max="0.1" step="0.001"> L2 (<span id="encode-l2-label"></span>)<br/>
+            <input id="encode-continue" type="checkbox"> continue train
+            <input id="encode-train" type="button" value="Train" style="width:100px">
+            <script>
+                $("#encode-train").on("click", (e)=>{
+                    fetch("http://127.0.0.1/?" + new URLSearchParams({
+                        train:1,
+                        epochsCount:Number($("#encode-epochs-count")[0].value),
+                        learningRate:Number($("#encode-learn-rate")[0].value),
+                        l1:Number($("#encode-l1")[0].value),
+                        l2:Number($("#encode-l2")[0].value),
+                        continueTrain:Number($("#encode-continue")[0].checked)
+                    }))
+                })
+            </script>
+        </div>
+    </div>
+    <script>
+        connectAB($("#encode-epochs-count"), $("#encode-epochs-count-label"));
+        connectAB($("#encode-learn-rate"), $("#encode-learn-rate-label"));
+        connectAB($("#encode-l1"), $("#encode-l1-label"));
+        connectAB($("#encode-l2"), $("#encode-l2-label"));
+    </script>
+    <br/>
+    <div>
+        <h2>Train decode model</h2>
+        <div style="margin-left: 8px">
+            <input id="decode-epochs-count" type="range" min="1" max="500" step="1" value="10" onload="">Epochs count (<span id="decode-epochs-count-label"></span>)<br/>
+            <input id="decode-learn-rate" type="range" min="0" max="0.01" step="0.00001"> Learning rate (<span id="decode-learn-rate-label"></span>)<br/>
+            <input id="decode-l1" type="range" value="0" min="0" max="0.1" step="0.00001"> L1 (<span id="decode-l1-label"></span>)<br/>
+            <input id="decode-l2" type="range" value="0" min="0" max="0.1" step="0.00001"> L2 (<span id="decode-l2-label"></span>)<br/>
+            <input id="decode-continue" type="checkbox"> continue train
+            <input id="decode-train" type="button" value="Train" style="width:100px"><br/><br/>
+
+            <input id="decode-generate-target" type="range" min="0" max="1" step="1">
+            <input id="decode-generate" type="button" value="Generate image" style="width:120px">
+            <script>
+                $("#decode-train").on("click", (e)=>{
+                    fetch("http://127.0.0.1/?" + new URLSearchParams({
+                        train_generator:1,
+                        epochsCount:Number($("#decode-epochs-count")[0].value),
+                        learningRate:Number($("#decode-learn-rate")[0].value),
+                        l1:Number($("#decode-l1")[0].value),
+                        l2:Number($("#decode-l2")[0].value),
+                        continueTrain:Number($("#decode-continue")[0].checked)
+                    })).then((res)=>{res.text().then((t)=>{
+                        console.log(t);
+                    })})
+                })
+                $("#decode-generate").on("click", (e)=>{
+                    fetch("http://127.0.0.1/?" + new URLSearchParams({
+                        generate_image:1,
+                        target:Number($("#decode-generate-target")[0].value)
+                    })).then((res)=>{res.text().then((t)=>{
+                        console.log(t);
+                    })})
+                })
+            </script>
+        </div>
+    </div>
+    <script>
+        connectAB($("#decode-epochs-count"), $("#decode-epochs-count-label"));
+        connectAB($("#decode-learn-rate"), $("#decode-learn-rate-label"));
+        connectAB($("#decode-l1"), $("#decode-l1-label"));
+        connectAB($("#decode-l2"), $("#decode-l2-label"));
+    </script>
+</body>
+</html>

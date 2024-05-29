@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <style>
+        body {
+            margin:0;
+            padding:0;
+        }
+        #images_block {
+            display: flex;
+            gap: 50px;
+
+        }
+        .class_block {
+            height:100%;
+            display: grid;
+            grid-template-columns: 33% 33% 33%;
+            gap: 0px;
+            width:50%;
+        }
+
+        .debug-image {
+            
+            padding:0;
+            margin:0;
+        }
+        .debug-image img {
+            width:100%;
+            /* height:100%; */
+            /* border: 3px solid red; */
+        }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <div id="images_block">
+        <div class="class_block"></div>
+        <div class="class_block"></div>
+    </div>
+    <input type="button" value="Fix selected" style="width:150px; height:30px">
+    <script>
+        function clearSelection() {
+            for (let target in selectedTargets[0]) {
+                $(selectedTargets[0][target]).css("border","none");
+            }
+            for (let target in selectedTargets[1]) {
+                $(selectedTargets[1][target]).css("border","none");
+            }
+            selectedTargets = [[],[]];
+        }
+        let holdedButton = null;
+        $(document).on("keydown", (e)=>{
+            holdedButton = e.originalEvent.key;
+            if (holdedButton == 'Escape') {
+                clearSelection()
+                
+                firstTarget = null;
+            }
+            if (holdedButton == 'f') {
+                let resps = 0;
+                for (let i = 0; i < selectedTargets[0].length; i++) {
+                    let filePath = selectedTargets[0][i].src.slice(43);
+                    let path = "http://127.0.0.1/?"+new URLSearchParams({transfer:1,from:"DebugImages/"+filePath,to:"class_2"});
+
+                    fetch(path).then((v)=>{resps++; 
+                        if (resps == selectedTargets[0].length + selectedTargets[1].length) {
+                            clearSelection()
+                            allTargets = [[],[]];
+                            $($('.class_block')[0]).text("");
+                            $($('.class_block')[1]).text("");
+                            
+                            createBlocks()
+                        }
+                    });
+                }
+                for (let i = 0; i < selectedTargets[1].length; i++) {
+                    let filePath = selectedTargets[1][i].src.slice(43);
+                    let path = "http://127.0.0.1/?"+new URLSearchParams({transfer:1,from:"DebugImages/"+filePath,to:"class_1"});
+
+                    fetch(path).then((v)=>{resps++; 
+                        if (resps == selectedTargets[0].length + selectedTargets[1].length) {
+                            clearSelection()
+                            allTargets = [[],[]];
+                            $($('.class_block')[0]).text("");
+                            $($('.class_block')[1]).text("");
+                            
+                            createBlocks()
+                        }
+                    
+                    });
+                }
+
+                
+            }
+        })
+        $(document).on("keyup", (e)=>{
+            holdedButton = null;
+        })
+
+        let allTargets = [[],[]];
+        let selectedTargets = [[],[]];
+        let firstTarget = null;
+        function addImageBlock(src,target) {
+            let image = $(`<div class='debug-image'><img src='${src}'/></div>`)
+            $($('.class_block')[target]).append(image);
+            allTargets[target].push(image);
+            image.on("mousedown",(e)=>{
+                $(e.target).css("border","2px dashed red")
+                if (!selectedTargets[target].includes(e.target)) {
+                    selectedTargets[target].push(e.target)-1;
+                } else {
+                    let targetIndex = selectedTargets[target].findIndex((v)=>{return v==e.target});
+                    $(selectedTargets[target][targetIndex]).css("border",'none')
+                    selectedTargets[target].splice(targetIndex,1);
+                }
+            })
+        }
+        function createBlocks() {
+            fetch("http://127.0.0.1/?"+new URLSearchParams({get_debug_length:1,target:"0"})).then((v)=>{v.text().then((v)=>{
+                for (let i = 0; i < v; i++) {
+                    let target = "http://127.0.0.1/?"+new URLSearchParams({get_debug_image:1,target:`0/img${i}.jpg`}).toString().replace("%2F","/");
+                    addImageBlock(target,0);
+                }
+            })})
+            
+            fetch("http://127.0.0.1/?"+new URLSearchParams({get_debug_length:1,target:"1"})).then((v)=>{v.text().then((v)=>{
+                for (let i = 0; i < v; i++) {
+                    let target = "http://127.0.0.1/?"+new URLSearchParams({get_debug_image:1,target:`1/img${i}.jpg`}).toString().replace("%2F","/");
+                    addImageBlock(target,1);
+                }
+            })})
+        }
+        createBlocks()
+    </script>
+</body>
+</html>
